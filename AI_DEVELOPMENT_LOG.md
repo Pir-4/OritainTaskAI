@@ -25,6 +25,20 @@ We updated this log at each major milestone, not at the end. After each step we 
 - Install `uv`, latest Python, `.venv`
 - Add `ruff` (linter), `alembic` (migrations), `pytest` (backend tests), `playwright` (UI tests)
 
+#### What AI Generated
+- `uv init` backend project scaffold with `pyproject.toml`, `.python-version`, `.venv`
+- `ruff` and `pre-commit` configuration in `pyproject.toml` and `.pre-commit-config.yaml`
+- `alembic init` migrations folder with `env.py`, `script.py.mako`, `alembic.ini`
+- `.claude/CLAUDE.md` with project context, stack, commands, and conventions
+- Analysis of 100+ agents from the external repo with grouped descriptions
+
+#### How We Validated
+- **Pre-commit hook** — observed ruff auto-fix alembic files on the first commit attempt, then pass cleanly on the second. Confirmed the hook was working correctly.
+- **pyproject.toml** — manually read through after generation, caught the ruff config mismatch and replaced with personal standard.
+- **alembic init** — intentionally deferred; will review `env.py` when models and migrations are generated.
+- **CLAUDE.md** — manually read through after generation, approved as accurate.
+- **Agent list analysis** — spotted AI execution error before commit, manually reviewed remaining files before approving deletions.
+
 #### Effective Prompting
 
 | Prompt | Result | Notes |
