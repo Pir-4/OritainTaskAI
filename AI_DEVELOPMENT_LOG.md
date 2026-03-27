@@ -3,6 +3,8 @@
 ## Tools Used
 
 - **Claude Code** (claude-sonnet-4-6) — primary AI assistant throughout the project
+- **Playwright MCP** — browser automation server, used for UI validation and testing
+- **Context7 MCP** — fetches up-to-date library documentation (FastAPI, SQLAlchemy, React, etc.)
 
 ---
 
