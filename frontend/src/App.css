@@ -1,0 +1,245 @@
+/* Nav */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.nav-brand {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text-h);
+  margin-right: auto;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.nav-btn:hover {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.nav-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Main content */
+.main {
+  padding: 32px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Submit form */
+.submit-form {
+  max-width: 480px;
+}
+
+.submit-form h2 {
+  margin-bottom: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.form-group input {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text-h);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: var(--accent-border);
+}
+
+.submit-form button[type="submit"] {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  transition: opacity 0.2s;
+}
+
+.submit-form button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit-form button[type="submit"]:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* Error / loading */
+.error {
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+table th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+table button {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+table button:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-verified {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.status-failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.status-inconclusive {
+  background: rgba(234, 179, 8, 0.15);
+  color: #b45309;
+}
+
+/* Sample detail */
+.sample-detail {
+  max-width: 560px;
+}
+
+.sample-detail h2 {
+  margin: 16px 0 24px;
+}
+
+.sample-detail > button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sample-detail > button:hover {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.sample-detail dl {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0;
+}
+
+.sample-detail dt {
+  padding: 12px 16px;
+  background: var(--code-bg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+}
+
+.sample-detail dd {
+  padding: 12px 16px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.sample-detail dt:last-of-type,
+.sample-detail dd:last-of-type {
+  border-bottom: none;
+}
