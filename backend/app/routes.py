@@ -16,9 +16,11 @@ async def create_sample(
     db: AsyncSession = Depends(get_db),
 ):
     sample = Sample(
-        species=data.species,
-        origin_country=data.origin_country,
-        collected_at=data.collected_at,
+        product_name=data.product_name,
+        claimed_origin=data.claimed_origin,
+        isotope_ratio_o18=data.sample_data.isotope_ratio_o18,
+        isotope_ratio_c13=data.sample_data.isotope_ratio_c13,
+        trace_element_sr=data.sample_data.trace_element_sr,
         status="pending",
     )
     db.add(sample)

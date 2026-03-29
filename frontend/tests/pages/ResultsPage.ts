@@ -15,10 +15,10 @@ export class ResultsPage {
     await expect(this.rows).toHaveCount(minCount, { timeout: 10000 });
   }
 
-  async clickViewBySpecies(species: string): Promise<void> {
+  async clickViewByProductName(productName: string): Promise<void> {
     const row = this.page
       .getByTestId("sample-row")
-      .filter({ hasText: species });
+      .filter({ hasText: productName });
     await row.getByRole("button", { name: "View" }).click();
   }
 }

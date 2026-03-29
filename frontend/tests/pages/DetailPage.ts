@@ -2,17 +2,21 @@ import { type Page, type Locator } from "@playwright/test";
 
 export class DetailPage {
   readonly page: Page;
-  readonly species: Locator;
-  readonly originCountry: Locator;
-  readonly collectedAt: Locator;
+  readonly productName: Locator;
+  readonly claimedOrigin: Locator;
+  readonly isotopeO18: Locator;
+  readonly isotopeC13: Locator;
+  readonly traceSr: Locator;
   readonly statusBadge: Locator;
   readonly backButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.species = page.getByTestId("detail-species");
-    this.originCountry = page.getByTestId("detail-origin-country");
-    this.collectedAt = page.getByTestId("detail-collected-at");
+    this.productName = page.getByTestId("detail-product-name");
+    this.claimedOrigin = page.getByTestId("detail-claimed-origin");
+    this.isotopeO18 = page.getByTestId("detail-isotope-o18");
+    this.isotopeC13 = page.getByTestId("detail-isotope-c13");
+    this.traceSr = page.getByTestId("detail-trace-sr");
     this.statusBadge = page.getByTestId("sample-status");
     this.backButton = page.getByTestId("back-button");
   }

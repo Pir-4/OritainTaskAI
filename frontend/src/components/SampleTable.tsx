@@ -33,8 +33,8 @@ export function SampleTable({ onSelect }: Props) {
           <thead>
             <tr>
               <th>ID</th>
-              <th>Species</th>
-              <th>Origin Country</th>
+              <th>Product Name</th>
+              <th>Claimed Origin</th>
               <th>Status</th>
               <th>Created At</th>
               <th></th>
@@ -44,8 +44,8 @@ export function SampleTable({ onSelect }: Props) {
             {samples.map((s) => (
               <tr key={s.id} data-testid="sample-row">
                 <td>{s.id}</td>
-                <td>{s.species}</td>
-                <td>{s.origin_country}</td>
+                <td>{s.product_name}</td>
+                <td>{s.claimed_origin}</td>
                 <td>
                   <span
                     className={`status-badge status-${s.status}`}

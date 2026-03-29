@@ -1,5 +1,65 @@
 # AI Development Log
 
+## Reflections
+
+### Which AI tools you used and for what purpose
+
+The primary model throughout the project was **claude-sonnet-4-6**, used for all code generation, planning, and implementation tasks. For complex planning and reasoning steps, **claude-opus-4-6** was used occasionally — though it exhausted the usage limit mid-session during the backend milestone, which reinforced the preference for Sonnet for routine code generation.
+
+Beyond the base model, several specialised tools were used:
+
+- **Claude Code** (claude-sonnet-4-6) — primary AI assistant for all implementation: scaffolding, writing backend and frontend code, updating tests, and generating the README
+- **Software Architect agent** — used at the start of each milestone to decompose the task into phases, identify file-level impact, and produce a dependency-ordered implementation plan
+- **QA Tester agent** — used alongside the Architect to produce a test plan before implementation started
+- **Code Reviewer agent** — run after implementation to catch issues; used twice per milestone (once after initial generation, once after fixes to confirm all issues were resolved)
+- **Backend Developer agent** — used during backend implementation for targeted code generation tasks
+- **Frontend Developer agent** — used during frontend implementation for component and test generation
+- **Playwright MCP** — browser automation for manual UI validation; used to navigate the running app and verify all three views worked before writing automated tests
+- **Context7 MCP** — fetched up-to-date documentation for FastAPI, SQLAlchemy, and React during implementation
+
+### Examples of effective prompting
+
+**High-level project planning (before any code was written):**
+
+Before starting implementation, a high-level prompt was used to break the entire project into milestones:
+
+> "Read the requirements. Break the project into milestones — what should be built in what order, and what are the dependencies between them?"
+
+This produced the four-milestone structure (Init, Backend, Frontend, Integration) that the whole project followed. Starting with a roadmap rather than jumping straight into code meant each milestone had a clear scope and the work stayed focused.
+
+**Milestone planning prompt (used at the start of each milestone):**
+
+> "Before starting, create a plan. Read the original requirements and the milestone description. Use the Architect agent to decompose the task into small steps and identify what can run in parallel. Use the QA agent for a test plan. Key constraints: [list of specific constraints for the milestone]."
+
+Providing all constraints upfront in a single prompt — rather than correcting the AI mid-implementation — consistently produced more accurate output with fewer back-and-forth rounds.
+
+**Schema correction prompt (Milestone 4):**
+
+> Pasted the raw requirements JSON directly and asked the Architect agent to plan how to change the app, including migration strategy, noting that random values could be generated for existing data.
+
+Giving the agent the raw requirement rather than a paraphrase produced a precise plan. The hint about migrations ("maybe delete all") let the agent confirm and justify that recommendation rather than defaulting to a forward-only migration.
+
+**Error fixing:**
+
+When the dev server failed to start, the AI was asked to diagnose the error from the output rather than guess. Providing the actual error message (e.g. Node.js version incompatibility with Vite 8) let it identify the root cause immediately and apply a targeted fix.
+
+### Where we chose NOT to follow AI suggestions
+
+**Project setup:** The AI installed all required tools and dependencies, but the list of tools, the ruff rules, and which agents and MCP servers to include were decided upfront by the developer. The AI executed the setup; the choices about what to set up were human decisions.
+
+**Final review before PR:** Before creating each pull request, the running application was manually tested — the backend API was exercised with curl, and the frontend was navigated through all three views. The check was that the app worked correctly end-to-end, not a line-by-line file review.
+
+**Ruff configuration:** The AI defaulted to its own style preferences. The project's existing ruff config (line length 80, specific rule sets) was pasted in directly so the AI adopted it exactly rather than rewriting it.
+
+### How you validated AI-generated code
+
+- **Code Reviewer agent** — run after each implementation phase; the first pass typically caught 5–8 issues, the second pass confirmed they were resolved
+- **Tests** — the AI was asked to write tests as part of each milestone, not after. Backend tests used real database connections with no mocks; Playwright tests covered all three frontend views end-to-end
+- **Manual checks** — the running app was opened and exercised manually by both the developer and via Playwright MCP before the automated tests were written; this caught issues like the CORS misconfiguration when the Docker-served frontend was added
+- **Linting and formatting** — ruff (backend) and ESLint + Prettier (frontend) were run after every implementation phase; issues flagged by the linter were fixed before moving on. Refactoring was not done manually — the linter and formatter handled code style concerns
+
+---
+
 ## Tools Used
 
 - **Claude Code** (claude-sonnet-4-6) — primary AI assistant throughout the project
@@ -154,18 +214,41 @@ We updated this log at each major milestone, not at the end. After each step we 
 ---
 
 ### 4. Integration & Documentation
-- Single startup script / command to bring up the entire app
-- Update `README.md` — full setup, usage, and API reference
-- Finalize `AI_DEVELOPMENT_LOG.md`
+- Corrected sample schema to match requirements (`product_name`, `claimed_origin`, nested `sample_data` with isotope/trace fields)
+- Dropped old migrations, regenerated a single clean migration
+- Updated all backend models, schemas, routes, and tests end-to-end
+- Updated all frontend types, components, page objects, and Playwright specs
+- Created `README.md` with Docker quick start, local dev setup, API reference, and test instructions
+
+#### What AI Generated
+- Full schema migration plan via Software Architect agent — identified every file that needed changing, recommended dropping migrations over a forward-only migration, and produced a phased implementation plan with parallelism noted
+- Updated `models.py`: replaced `species`, `origin_country`, `collected_at` with `product_name`, `claimed_origin`, and three `Float` columns
+- Updated `schemas.py`: added `SampleData` nested Pydantic model; `SampleResponse` uses `@model_validator(mode='before')` to assemble flat ORM columns into nested `sample_data` for the response
+- Updated `routes.py`: unpacks `data.sample_data.*` when constructing ORM objects
+- Fresh Alembic migration via `alembic revision --autogenerate`
+- Updated backend tests: new `_sample()` helper with `sample_data`, renamed field assertions, added `test_create_sample_missing_sample_data`
+- Updated frontend: `sample.ts` types, all three components (`SubmitForm`, `SampleTable`, `SampleDetail`), test fixtures, page objects, and all three Playwright spec files
+- Added `randomSampleData()` helper in test fixtures to generate plausible float values
+- `README.md`: minimal, clear — Docker one-liner, local dev steps for both backend and frontend, API payload example, test commands
+
+#### How We Validated
+- **Backend tests** — 13/13 passed after migration reset and schema update; no regressions
+- **ruff lint + format** — clean on the first run, no manual fixes needed
+- **TypeScript** — `tsc -b --noEmit` clean; ESLint clean
+- **Migration** — `alembic upgrade head` applied cleanly against the live Docker Postgres instance
+
+#### Effective Prompting
+
+| Prompt | Result | Notes |
+|--------|--------|-------|
+| Pasted the raw requirements JSON and asked the Architect agent to plan how to change the app, including migration strategy and noting we can create random values for existing items | Agent read all relevant files and returned a full phased plan with exact file-by-file impact and a clear migration recommendation (drop + recreate vs. forward migration) | Giving the agent the raw requirement rather than a paraphrase produced a more precise plan; specifying "maybe delete all migrations" as a hint let it confirm that recommendation with reasoning |
+
+#### Where We Overrode AI Suggestions
+
+| Step | AI suggested | We chose | Reason |
+|------|-------------|----------|--------|
+| Schema change approach | Forward-only migration with `ALTER TABLE RENAME COLUMN` | Drop all migrations and create a single fresh one | AI itself recommended this for a dev environment — accepted without override |
+| `collected_at` removal | Keep as optional field for backward compatibility | Remove entirely | Field is not in the requirements; keeping dead fields adds noise |
 
 ---
 
-## Reflections
-
-_Written at the end of development._
-
-**What the AI did well:**
-
-**Where human judgment was essential:**
-
-**What we would do differently:**
