@@ -154,9 +154,41 @@ We updated this log at each major milestone, not at the end. After each step we 
 ---
 
 ### 4. Integration & Documentation
-- Single startup script / command to bring up the entire app
-- Update `README.md` — full setup, usage, and API reference
-- Finalize `AI_DEVELOPMENT_LOG.md`
+- Corrected sample schema to match requirements (`product_name`, `claimed_origin`, nested `sample_data` with isotope/trace fields)
+- Dropped old migrations, regenerated a single clean migration
+- Updated all backend models, schemas, routes, and tests end-to-end
+- Updated all frontend types, components, page objects, and Playwright specs
+- Created `README.md` with Docker quick start, local dev setup, API reference, and test instructions
+
+#### What AI Generated
+- Full schema migration plan via Software Architect agent — identified every file that needed changing, recommended dropping migrations over a forward-only migration, and produced a phased implementation plan with parallelism noted
+- Updated `models.py`: replaced `species`, `origin_country`, `collected_at` with `product_name`, `claimed_origin`, and three `Float` columns
+- Updated `schemas.py`: added `SampleData` nested Pydantic model; `SampleResponse` uses `@model_validator(mode='before')` to assemble flat ORM columns into nested `sample_data` for the response
+- Updated `routes.py`: unpacks `data.sample_data.*` when constructing ORM objects
+- Fresh Alembic migration via `alembic revision --autogenerate`
+- Updated backend tests: new `_sample()` helper with `sample_data`, renamed field assertions, added `test_create_sample_missing_sample_data`
+- Updated frontend: `sample.ts` types, all three components (`SubmitForm`, `SampleTable`, `SampleDetail`), test fixtures, page objects, and all three Playwright spec files
+- Added `randomSampleData()` helper in test fixtures to generate plausible float values
+- `README.md`: minimal, clear — Docker one-liner, local dev steps for both backend and frontend, API payload example, test commands
+
+#### How We Validated
+- **Backend tests** — 13/13 passed after migration reset and schema update; no regressions
+- **ruff lint + format** — clean on the first run, no manual fixes needed
+- **TypeScript** — `tsc -b --noEmit` clean; ESLint clean
+- **Migration** — `alembic upgrade head` applied cleanly against the live Docker Postgres instance
+
+#### Effective Prompting
+
+| Prompt | Result | Notes |
+|--------|--------|-------|
+| Pasted the raw requirements JSON and asked the Architect agent to plan how to change the app, including migration strategy and noting we can create random values for existing items | Agent read all relevant files and returned a full phased plan with exact file-by-file impact and a clear migration recommendation (drop + recreate vs. forward migration) | Giving the agent the raw requirement rather than a paraphrase produced a more precise plan; specifying "maybe delete all migrations" as a hint let it confirm that recommendation with reasoning |
+
+#### Where We Overrode AI Suggestions
+
+| Step | AI suggested | We chose | Reason |
+|------|-------------|----------|--------|
+| Schema change approach | Forward-only migration with `ALTER TABLE RENAME COLUMN` | Drop all migrations and create a single fresh one | AI itself recommended this for a dev environment — accepted without override |
+| `collected_at` removal | Keep as optional field for backward compatibility | Remove entirely | Field is not in the requirements; keeping dead fields adds noise |
 
 ---
 
@@ -165,7 +197,16 @@ We updated this log at each major milestone, not at the end. After each step we 
 _Written at the end of development._
 
 **What the AI did well:**
+- Planned schema migrations correctly — identified every impacted file across backend and frontend before writing a single line of code
+- Kept the nested `sample_data` contract consistent between API input and output without being asked, using a `model_validator` to bridge the flat ORM to the nested response shape
+- Generated random float helpers (`randomSampleData`) for test fixtures unprompted — recognized that hardcoded values in every test would be brittle
+- Maintained naming consistency across all layers (test IDs, field names, page object properties) without requiring manual cross-checking
 
 **Where human judgment was essential:**
+- Catching that the existing schema was wrong required reading the original requirements — the AI had implemented the previous schema correctly as specified at the time
+- Deciding to use the `final` branch and structure the milestone as a schema correction rather than a new feature was a framing decision the human made
+- Choosing not to commit `.DS_Store` and `frontend/.vite/` — the AI correctly identified these as artifacts not to stage
 
 **What we would do differently:**
+- Validate the sample schema against the original requirements document before implementing the backend — a single requirements review at the start of Milestone 2 would have caught the mismatch before tests, Docker config, and frontend were all built around the wrong shape
+- Add a `.gitignore` entry for `.DS_Store` and `frontend/.vite/` at project init so they never appear as untracked files
