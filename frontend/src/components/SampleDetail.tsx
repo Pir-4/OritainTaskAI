@@ -32,18 +32,11 @@ export function SampleDetail({ id, onBack }: Props) {
       </button>
       <h2>Sample #{sample.id}</h2>
       <dl>
-        <dt>Species</dt>
-        <dd data-testid="detail-species">{sample.species}</dd>
+        <dt>Product Name</dt>
+        <dd data-testid="detail-product-name">{sample.product_name}</dd>
 
-        <dt>Origin Country</dt>
-        <dd data-testid="detail-origin-country">{sample.origin_country}</dd>
-
-        <dt>Collected At</dt>
-        <dd data-testid="detail-collected-at">
-          {sample.collected_at
-            ? new Date(sample.collected_at).toLocaleString()
-            : "—"}
-        </dd>
+        <dt>Claimed Origin</dt>
+        <dd data-testid="detail-claimed-origin">{sample.claimed_origin}</dd>
 
         <dt>Status</dt>
         <dd>
@@ -53,6 +46,24 @@ export function SampleDetail({ id, onBack }: Props) {
           >
             {sample.status}
           </span>
+        </dd>
+
+        <dt>Sample Data</dt>
+        <dd>
+          <dl>
+            <dt>Isotope Ratio O18</dt>
+            <dd data-testid="detail-isotope-o18">
+              {sample.sample_data.isotope_ratio_o18}
+            </dd>
+            <dt>Isotope Ratio C13</dt>
+            <dd data-testid="detail-isotope-c13">
+              {sample.sample_data.isotope_ratio_c13}
+            </dd>
+            <dt>Trace Element Sr</dt>
+            <dd data-testid="detail-trace-sr">
+              {sample.sample_data.trace_element_sr}
+            </dd>
+          </dl>
         </dd>
 
         <dt>Created At</dt>

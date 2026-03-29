@@ -60,7 +60,7 @@ def cleanup_samples(test_name):
     yield
     with sync_engine.connect() as conn:
         conn.execute(
-            text("DELETE FROM samples WHERE species LIKE :pat"),
+            text("DELETE FROM samples WHERE product_name LIKE :pat"),
             {"pat": f"%{test_name}%"},
         )
         conn.commit()

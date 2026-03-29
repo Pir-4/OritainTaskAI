@@ -7,9 +7,11 @@ interface Props {
 }
 
 export function SubmitForm({ onSuccess }: Props) {
-  const [species, setSpecies] = useState("");
-  const [originCountry, setOriginCountry] = useState("");
-  const [collectedAt, setCollectedAt] = useState("");
+  const [productName, setProductName] = useState("");
+  const [claimedOrigin, setClaimedOrigin] = useState("");
+  const [isotopeO18, setIsotopeO18] = useState("");
+  const [isotopeC13, setIsotopeC13] = useState("");
+  const [traceSr, setTraceSr] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,9 +21,13 @@ export function SubmitForm({ onSuccess }: Props) {
     setError(null);
     try {
       const sample = await createSample({
-        species,
-        origin_country: originCountry,
-        collected_at: collectedAt || undefined,
+        product_name: productName,
+        claimed_origin: claimedOrigin,
+        sample_data: {
+          isotope_ratio_o18: parseFloat(isotopeO18),
+          isotope_ratio_c13: parseFloat(isotopeC13),
+          trace_element_sr: parseFloat(traceSr),
+        },
       });
       onSuccess(sample);
     } catch (err) {
@@ -36,37 +42,65 @@ export function SubmitForm({ onSuccess }: Props) {
       <h2>Submit Sample</h2>
 
       <div className="form-group">
-        <label htmlFor="species">Species</label>
+        <label htmlFor="product-name">Product Name</label>
         <input
-          id="species"
+          id="product-name"
           type="text"
-          value={species}
-          onChange={(e) => setSpecies(e.target.value)}
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
           required
-          data-testid="input-species"
+          data-testid="input-product-name"
         />
       </div>
 
       <div className="form-group">
-        <label htmlFor="origin-country">Origin Country</label>
+        <label htmlFor="claimed-origin">Claimed Origin</label>
         <input
-          id="origin-country"
+          id="claimed-origin"
           type="text"
-          value={originCountry}
-          onChange={(e) => setOriginCountry(e.target.value)}
+          value={claimedOrigin}
+          onChange={(e) => setClaimedOrigin(e.target.value)}
           required
-          data-testid="input-origin-country"
+          data-testid="input-claimed-origin"
         />
       </div>
 
       <div className="form-group">
-        <label htmlFor="collected-at">Collected At (optional)</label>
+        <label htmlFor="isotope-o18">Isotope Ratio O18</label>
         <input
-          id="collected-at"
-          type="datetime-local"
-          value={collectedAt}
-          onChange={(e) => setCollectedAt(e.target.value)}
-          data-testid="input-collected-at"
+          id="isotope-o18"
+          type="number"
+          step="any"
+          value={isotopeO18}
+          onChange={(e) => setIsotopeO18(e.target.value)}
+          required
+          data-testid="input-isotope-o18"
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="isotope-c13">Isotope Ratio C13</label>
+        <input
+          id="isotope-c13"
+          type="number"
+          step="any"
+          value={isotopeC13}
+          onChange={(e) => setIsotopeC13(e.target.value)}
+          required
+          data-testid="input-isotope-c13"
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="trace-sr">Trace Element Sr</label>
+        <input
+          id="trace-sr"
+          type="number"
+          step="any"
+          value={traceSr}
+          onChange={(e) => setTraceSr(e.target.value)}
+          required
+          data-testid="input-trace-sr"
         />
       </div>
 
