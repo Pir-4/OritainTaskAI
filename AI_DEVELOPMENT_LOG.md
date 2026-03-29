@@ -118,6 +118,39 @@ We updated this log at each major milestone, not at the end. After each step we 
 - `Dockerfile` for frontend
 - `docker-compose.yml` + frontend
 
+#### What AI Generated
+- Full component set: `Nav.tsx`, `SubmitForm.tsx`, `SampleTable.tsx`, `SampleDetail.tsx`, `App.tsx`
+- Typed API client in `src/api/client.ts` with `VITE_API_URL` env var
+- Shared TypeScript types in `src/types/sample.ts`
+- View state machine in `App.tsx` using `useState` with discriminated union type — no React Router
+- `data-testid` attributes on all interactive elements for Playwright targeting
+- Plain CSS in `App.css` and `index.css` — status badge colors, form layout, detail definition list, nav bar
+- 8 Playwright test files: config, fixtures, 3 page objects (POM pattern), 3 spec files (12 tests total)
+- Multi-stage `Dockerfile` — `node:22-alpine` builder + `nginx:alpine` server
+- `nginx.conf` with SPA fallback (`try_files`) and gzip
+- Frontend service added to `docker-compose.yml` on port 3000
+
+#### How We Validated
+- **ESLint** — caught `react-hooks/set-state-in-effect` rule violation (`setLoading(true)` synchronously in `useEffect`); fixed by adding `key={view.id}` on `SampleDetail` so React remounts on id change, making the synchronous reset unnecessary
+- **TypeScript** — `tsc -b --noEmit` confirmed clean after fixing `import type` and discriminated union narrowing issues
+- **Playwright MCP** — used browser automation to open the running app and verify the UI manually; AI navigated to the app, waited for data to load, and confirmed all three views worked correctly
+- **Manual error reporting** — AI asked the user to provide the error output after running the dev server, which revealed the Node.js version incompatibility with Vite 8; AI then diagnosed and fixed it
+
+#### Effective Prompting
+
+| Prompt | Result | Notes |
+|--------|--------|-------|
+| "Before starting, create a plan. Use the Architect agent to decompose the task into small steps and identify what can run in parallel. Use the QA agent for a test plan." | AI returned a full implementation plan with dependency graph and phase breakdown | Same pattern as backend — plan-first with agent roles specified produced a clear, actionable breakdown |
+| Launched Playwright tests agent and Docker agent in parallel after Phase 2 was complete | Both completed independently without conflicts | Phases 3 and 4 had no shared files, so parallel execution saved time |
+
+#### Where We Overrode AI Suggestions
+
+| Step | AI suggested | We chose | Reason |
+|------|-------------|----------|--------|
+| Test folder location | `tests/frontend/` at project root (matching backend pattern) | `frontend/tests/` inside the frontend folder | User preference — keeps frontend self-contained |
+| Vite 8 | Used by default from `npm create vite@latest` | Downgraded to Vite 5.x | Vite 8 requires Node.js 20.19+; machine has 20.13.1 — discovered when trying to run the dev server |
+| CORS origins | Only `http://localhost:5173` (dev server) | Added `http://localhost:3000` (Docker nginx) | Discovered via Playwright MCP check — the app loaded but showed "Failed to fetch" because the Docker-served frontend was blocked by CORS; AI asked user to provide the error, diagnosed it, and added the missing origin |
+
 ---
 
 ### 4. Integration & Documentation
