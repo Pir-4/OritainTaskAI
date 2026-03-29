@@ -64,6 +64,10 @@ We updated this log at each major milestone, not at the end. After each step we 
 - Database connection (PostgreSQL)
 - Endpoints: `POST /samples`, `GET /samples`, `GET /samples/{id}`
 - Verification logic (simulated)
+- Tests: `pytest` — endpoints + verification logic
+- `docker-compose.yml` — PostgreSQL
+- `Dockerfile` for backend
+- `docker-compose.yml` + API
 
 ---
 
@@ -73,24 +77,15 @@ We updated this log at each major milestone, not at the end. After each step we 
 - Submit form view
 - Results table view
 - Detail view
-
----
-
-### 4. Tests
-- Backend: `pytest` — endpoints + verification logic
-- Frontend: `playwright` — submit form, results table, detail view
-
----
-
-### 5. Docker
-- `Dockerfile` for backend
+- Tests: `playwright` — submit form, results table, detail view
 - `Dockerfile` for frontend
-- `docker-compose.yml` — API + frontend + PostgreSQL
+- `docker-compose.yml` + frontend
 
 ---
 
-### 6. Docs
-- `README.md`
+### 4. Integration & Documentation
+- Single startup script / command to bring up the entire app
+- Update `README.md` — full setup, usage, and API reference
 - Finalize `AI_DEVELOPMENT_LOG.md`
 
 ---
