@@ -1,5 +1,55 @@
 # AI Development Log
 
+## Reflections
+
+### Which AI tools you used and for what purpose
+
+The primary model throughout the project was **claude-sonnet-4-6**, used for all code generation, planning, and implementation tasks. For complex planning and reasoning steps, **claude-opus-4-6** was used occasionally — though it exhausted the usage limit mid-session during the backend milestone, which reinforced the preference for Sonnet for routine code generation.
+
+Beyond the base model, several specialised tools were used:
+
+- **Claude Code** (claude-sonnet-4-6) — primary AI assistant for all implementation: scaffolding, writing backend and frontend code, updating tests, and generating the README
+- **Software Architect agent** — used at the start of each milestone to decompose the task into phases, identify file-level impact, and produce a dependency-ordered implementation plan
+- **QA Tester agent** — used alongside the Architect to produce a test plan before implementation started
+- **Code Reviewer agent** — run after implementation to catch issues; used twice per milestone (once after initial generation, once after fixes to confirm all issues were resolved)
+- **Playwright MCP** — browser automation for manual UI validation; used to navigate the running app and verify all three views worked before writing automated tests
+- **Context7 MCP** — fetched up-to-date documentation for FastAPI, SQLAlchemy, and React during implementation
+
+### Examples of effective prompting
+
+**Planning prompt (used at the start of each milestone):**
+
+> "Before starting, create a plan. Read the original requirements and the milestone description. Use the Architect agent to decompose the task into small steps and identify what can run in parallel. Use the QA agent for a test plan. Key constraints: [list of specific constraints for the milestone]."
+
+Providing all constraints upfront in a single prompt — rather than correcting the AI mid-implementation — consistently produced more accurate output with fewer back-and-forth rounds.
+
+**Schema correction prompt (Milestone 4):**
+
+> Pasted the raw requirements JSON directly and asked the Architect agent to plan how to change the app, including migration strategy, noting that random values could be generated for existing data.
+
+Giving the agent the raw requirement rather than a paraphrase produced a precise plan. The hint about migrations ("maybe delete all") let the agent confirm and justify that recommendation rather than defaulting to a forward-only migration.
+
+**Error fixing:**
+
+When the dev server failed to start, the AI was asked to diagnose the error from the output rather than guess. Providing the actual error message (e.g. Node.js version incompatibility with Vite 8) let it identify the root cause immediately and apply a targeted fix.
+
+### Where we chose NOT to follow AI suggestions
+
+**Project setup:** The AI described a setup process, but the init steps — installing `uv`, configuring Python, setting up the virtual environment — were done manually. It is faster to run these commands directly than to describe preferences and have the AI generate them. The AI was brought in after the environment was ready.
+
+**Final review before PR:** Before creating each pull request, a manual review of all changed files was done independently. AI-generated code was not merged on trust alone — the review caught issues like the NullPool being placed in production code, and the `raise_server_exceptions=False` flag hiding real errors in tests.
+
+**Ruff configuration:** The AI defaulted to its own style preferences. The project's existing ruff config (line length 80, specific rule sets) was pasted in directly so the AI adopted it exactly rather than rewriting it.
+
+### How you validated AI-generated code
+
+- **Code Reviewer agent** — run after each implementation phase; the first pass typically caught 5–8 issues, the second pass confirmed they were resolved
+- **Tests** — the AI was asked to write tests as part of each milestone, not after. Backend tests used real database connections with no mocks; Playwright tests covered all three frontend views end-to-end
+- **Manual checks** — the running app was opened and exercised manually (via Playwright MCP and direct curl) before the automated tests were written, to catch obvious failures early
+- **Linting and formatting** — ruff (backend) and ESLint + Prettier (frontend) were run after every implementation phase; issues flagged by the linter were fixed before moving on. Refactoring was not done manually — the linter and formatter handled code style concerns
+
+---
+
 ## Tools Used
 
 - **Claude Code** (claude-sonnet-4-6) — primary AI assistant throughout the project
@@ -192,21 +242,3 @@ We updated this log at each major milestone, not at the end. After each step we 
 
 ---
 
-## Reflections
-
-_Written at the end of development._
-
-**What the AI did well:**
-- Planned schema migrations correctly — identified every impacted file across backend and frontend before writing a single line of code
-- Kept the nested `sample_data` contract consistent between API input and output without being asked, using a `model_validator` to bridge the flat ORM to the nested response shape
-- Generated random float helpers (`randomSampleData`) for test fixtures unprompted — recognized that hardcoded values in every test would be brittle
-- Maintained naming consistency across all layers (test IDs, field names, page object properties) without requiring manual cross-checking
-
-**Where human judgment was essential:**
-- Catching that the existing schema was wrong required reading the original requirements — the AI had implemented the previous schema correctly as specified at the time
-- Deciding to use the `final` branch and structure the milestone as a schema correction rather than a new feature was a framing decision the human made
-- Choosing not to commit `.DS_Store` and `frontend/.vite/` — the AI correctly identified these as artifacts not to stage
-
-**What we would do differently:**
-- Validate the sample schema against the original requirements document before implementing the backend — a single requirements review at the start of Milestone 2 would have caught the mismatch before tests, Docker config, and frontend were all built around the wrong shape
-- Add a `.gitignore` entry for `.DS_Store` and `frontend/.vite/` at project init so they never appear as untracked files
