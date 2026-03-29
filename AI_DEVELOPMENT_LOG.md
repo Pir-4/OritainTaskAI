@@ -92,7 +92,7 @@ We updated this log at each major milestone, not at the end. After each step we 
 
 | Prompt | Result | Notes |
 |--------|--------|-------|
-| Spawned Software Architect + API Tester agents in parallel for planning | Got full implementation plan with dependency graph + test plan simultaneously | Running two specialist agents in parallel saved time and produced more thorough output than asking one agent for both |
+| "Before starting, create a plan. Read the original requirements and backend milestone. Use the Architect agent to decompose the task into small steps and identify what can run in parallel. Use the QA agent for a test plan. Key constraints: simple verification logic based on `id % 3`; use PostgreSQL in Docker; be careful with Alembic — ruff deletes unused imports so use `#noqa`; use sync pytest because async tests are harder to debug; use E2E tests without mocks to validate real app logic." | AI spawned Software Architect + QA Tester agents in parallel and returned a full implementation plan with dependency graph + test plan | Providing all constraints and agent roles in one prompt avoided back-and-forth. Specifying which agents to use and what to focus on produced more targeted output than a generic "make a plan" request |
 | Provided all constraints upfront in agent prompts (sync tests, NullPool, `id % 3` logic, `#noqa` for Alembic) | AI followed all constraints without needing corrections | Specific, complete context in the initial prompt avoids back-and-forth |
 | Ran Code Reviewer agent twice — after implementation and after fixes | Caught 8 issues first pass, confirmed all resolved on second pass | Using reviewer as a checkpoint rather than self-reviewing caught things that would have been missed |
 | Accidentally switched to Opus 4.6 during code generation | Opus produced the code correctly, but exhausted the usage limit mid-session | Model selection matters for cost — Sonnet is sufficient for code generation; Opus should be reserved for complex planning or reasoning tasks only |
@@ -117,6 +117,39 @@ We updated this log at each major milestone, not at the end. After each step we 
 - Tests: `playwright` — submit form, results table, detail view
 - `Dockerfile` for frontend
 - `docker-compose.yml` + frontend
+
+#### What AI Generated
+- Full component set: `Nav.tsx`, `SubmitForm.tsx`, `SampleTable.tsx`, `SampleDetail.tsx`, `App.tsx`
+- Typed API client in `src/api/client.ts` with `VITE_API_URL` env var
+- Shared TypeScript types in `src/types/sample.ts`
+- View state machine in `App.tsx` using `useState` with discriminated union type — no React Router
+- `data-testid` attributes on all interactive elements for Playwright targeting
+- Plain CSS in `App.css` and `index.css` — status badge colors, form layout, detail definition list, nav bar
+- 8 Playwright test files: config, fixtures, 3 page objects (POM pattern), 3 spec files (12 tests total)
+- Multi-stage `Dockerfile` — `node:22-alpine` builder + `nginx:alpine` server
+- `nginx.conf` with SPA fallback (`try_files`) and gzip
+- Frontend service added to `docker-compose.yml` on port 3000
+
+#### How We Validated
+- **ESLint** — caught `react-hooks/set-state-in-effect` rule violation (`setLoading(true)` synchronously in `useEffect`); fixed by adding `key={view.id}` on `SampleDetail` so React remounts on id change, making the synchronous reset unnecessary
+- **TypeScript** — `tsc -b --noEmit` confirmed clean after fixing `import type` and discriminated union narrowing issues
+- **Playwright MCP** — used browser automation to open the running app and verify the UI manually; AI navigated to the app, waited for data to load, and confirmed all three views worked correctly
+- **Manual error reporting** — AI asked the user to provide the error output after running the dev server, which revealed the Node.js version incompatibility with Vite 8; AI then diagnosed and fixed it
+
+#### Effective Prompting
+
+| Prompt | Result | Notes |
+|--------|--------|-------|
+| "Before starting, create a plan. Use the Architect agent to decompose the task into small steps and identify what can run in parallel. Use the QA agent for a test plan." | AI returned a full implementation plan with dependency graph and phase breakdown | Same pattern as backend — plan-first with agent roles specified produced a clear, actionable breakdown |
+| Launched Playwright tests agent and Docker agent in parallel after Phase 2 was complete | Both completed independently without conflicts | Phases 3 and 4 had no shared files, so parallel execution saved time |
+
+#### Where We Overrode AI Suggestions
+
+| Step | AI suggested | We chose | Reason |
+|------|-------------|----------|--------|
+| Test folder location | `tests/frontend/` at project root (matching backend pattern) | `frontend/tests/` inside the frontend folder | User preference — keeps frontend self-contained |
+| Vite 8 | Used by default from `npm create vite@latest` | Downgraded to Vite 5.x | Vite 8 requires Node.js 20.19+; machine has 20.13.1 — discovered when trying to run the dev server |
+| CORS origins | Only `http://localhost:5173` (dev server) | Added `http://localhost:3000` (Docker nginx) | Discovered via Playwright MCP check — the app loaded but showed "Failed to fetch" because the Docker-served frontend was blocked by CORS; AI asked user to provide the error, diagnosed it, and added the missing origin |
 
 ---
 
