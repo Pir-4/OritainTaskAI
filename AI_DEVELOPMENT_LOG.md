@@ -12,12 +12,22 @@ Beyond the base model, several specialised tools were used:
 - **Software Architect agent** — used at the start of each milestone to decompose the task into phases, identify file-level impact, and produce a dependency-ordered implementation plan
 - **QA Tester agent** — used alongside the Architect to produce a test plan before implementation started
 - **Code Reviewer agent** — run after implementation to catch issues; used twice per milestone (once after initial generation, once after fixes to confirm all issues were resolved)
+- **Backend Developer agent** — used during backend implementation for targeted code generation tasks
+- **Frontend Developer agent** — used during frontend implementation for component and test generation
 - **Playwright MCP** — browser automation for manual UI validation; used to navigate the running app and verify all three views worked before writing automated tests
 - **Context7 MCP** — fetched up-to-date documentation for FastAPI, SQLAlchemy, and React during implementation
 
 ### Examples of effective prompting
 
-**Planning prompt (used at the start of each milestone):**
+**High-level project planning (before any code was written):**
+
+Before starting implementation, a high-level prompt was used to break the entire project into milestones:
+
+> "Read the requirements. Break the project into milestones — what should be built in what order, and what are the dependencies between them?"
+
+This produced the four-milestone structure (Init, Backend, Frontend, Integration) that the whole project followed. Starting with a roadmap rather than jumping straight into code meant each milestone had a clear scope and the work stayed focused.
+
+**Milestone planning prompt (used at the start of each milestone):**
 
 > "Before starting, create a plan. Read the original requirements and the milestone description. Use the Architect agent to decompose the task into small steps and identify what can run in parallel. Use the QA agent for a test plan. Key constraints: [list of specific constraints for the milestone]."
 
@@ -35,9 +45,9 @@ When the dev server failed to start, the AI was asked to diagnose the error from
 
 ### Where we chose NOT to follow AI suggestions
 
-**Project setup:** The AI described a setup process, but the init steps — installing `uv`, configuring Python, setting up the virtual environment — were done manually. It is faster to run these commands directly than to describe preferences and have the AI generate them. The AI was brought in after the environment was ready.
+**Project setup:** The AI installed all required tools and dependencies, but the list of tools, the ruff rules, and which agents and MCP servers to include were decided upfront by the developer. The AI executed the setup; the choices about what to set up were human decisions.
 
-**Final review before PR:** Before creating each pull request, a manual review of all changed files was done independently. AI-generated code was not merged on trust alone — the review caught issues like the NullPool being placed in production code, and the `raise_server_exceptions=False` flag hiding real errors in tests.
+**Final review before PR:** Before creating each pull request, the running application was manually tested — the backend API was exercised with curl, and the frontend was navigated through all three views. The check was that the app worked correctly end-to-end, not a line-by-line file review.
 
 **Ruff configuration:** The AI defaulted to its own style preferences. The project's existing ruff config (line length 80, specific rule sets) was pasted in directly so the AI adopted it exactly rather than rewriting it.
 
@@ -45,7 +55,7 @@ When the dev server failed to start, the AI was asked to diagnose the error from
 
 - **Code Reviewer agent** — run after each implementation phase; the first pass typically caught 5–8 issues, the second pass confirmed they were resolved
 - **Tests** — the AI was asked to write tests as part of each milestone, not after. Backend tests used real database connections with no mocks; Playwright tests covered all three frontend views end-to-end
-- **Manual checks** — the running app was opened and exercised manually (via Playwright MCP and direct curl) before the automated tests were written, to catch obvious failures early
+- **Manual checks** — the running app was opened and exercised manually by both the developer and via Playwright MCP before the automated tests were written; this caught issues like the CORS misconfiguration when the Docker-served frontend was added
 - **Linting and formatting** — ruff (backend) and ESLint + Prettier (frontend) were run after every implementation phase; issues flagged by the linter were fixed before moving on. Refactoring was not done manually — the linter and formatter handled code style concerns
 
 ---
