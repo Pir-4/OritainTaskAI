@@ -15,9 +15,13 @@ Take-home assignment for Oritain — a full-stack app for submitting product sam
 ```
 OritainTaskAI/
 ├── backend/          # FastAPI app
+│   ├── app/          # Application code
 │   ├── migrations/   # Alembic migrations
 │   ├── pyproject.toml
 │   └── .pre-commit-config.yaml
+├── tests/            # All tests (shared root)
+│   ├── backend/      # Backend pytest tests
+│   └── frontend/     # Frontend Playwright tests (future)
 ├── frontend/         # React + TypeScript app
 ├── docker-compose.yml
 ├── README.md
@@ -31,7 +35,7 @@ OritainTaskAI/
 cd backend
 uv run uvicorn app.main:app --reload   # run dev server
 uv run alembic upgrade head            # run migrations
-uv run pytest                          # run tests
+uv run pytest ./tests/                 # run tests
 uv run ruff check .                    # lint
 uv run ruff format .                   # format
 ```
